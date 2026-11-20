@@ -5,15 +5,20 @@ import { useNavigate } from "react-router-dom";
 
 
 export const Users = () => {
-    // Replace with backend call
     const [users, setUsers] = useState([]);
     const [filter, setFilter] = useState("");
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        axios.get("http://localhost:3000/api/v1/user/bulk?filter=" + filter)
-            .then(response => {
-                setUsers(response.data.user)
-            })
+        const token = localStorage.getItem("token");
+        axios.get(`/api/v1/user/bulk?filter=${encodeURIComponent(filter)}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        }).then((response) => {
+            setUsers(response.data.user);
+            setError("");
+        }).catch(() => {
+            setError("Unable to load users.");
+        });
     }, [filter])
 
     return <>
@@ -21,12 +26,16 @@ export const Users = () => {
             Users
         </div>
         <div className="my-2">
-            <input onChange={(e) => {
-                setFilter(e.target.value)
-            }} type="text" placeholder="Search users..." className="w-full px-2 py-1 border rounded border-slate-200"></input>
+            <input
+                onChange={(e) => setFilter(e.target.value)}
+                type="search"
+                placeholder="Search users..."
+                className="w-full rounded border border-slate-200 px-2 py-2"
+            />
         </div>
+        {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
         <div>
-            {users.map(user => <User user={user} />)}
+            {users.map(user => <User key={user._id} user={user} />)}
         </div>
     </>
 }
@@ -49,8 +58,9 @@ function User({user}) {
         </div>
 
         <div className="flex flex-col justify-center h-ful">
-            <Button onClick={(e) => {
-                navigate("/send?id=" + user._id + "&name=" + user.firstName);
+            <Button onClick={() => {
+                const params = new URLSearchParams({ id: user._id, name: user.firstName });
+                navigate(`/send?${params.toString()}`);
             }} label={"Send Money"} />
         </div>
     </div>

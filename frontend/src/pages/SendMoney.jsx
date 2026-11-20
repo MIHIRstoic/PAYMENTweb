@@ -5,57 +5,76 @@ import { useState } from 'react';
 export const SendMoney = () => {
     const [searchParams] = useSearchParams();
     const id = searchParams.get("id");
-    const name = searchParams.get("name");
-    const [amount, setAmount] = useState(0);
+    const name = searchParams.get("name") || "User";
+    const [amount, setAmount] = useState("");
+    const [error, setError] = useState("");
+    const [message, setMessage] = useState("");
+    const [submitting, setSubmitting] = useState(false);
 
-    return <div class="flex justify-center h-screen bg-gray-100">
-        <div className="h-full flex flex-col justify-center">
-            <div
-                class="border h-min text-card-foreground max-w-md p-4 space-y-8 w-96 bg-white shadow-lg rounded-lg"
-            >
-                <div class="flex flex-col space-y-1.5 p-6">
-                <h2 class="text-3xl font-bold text-center">Send Money</h2>
-                </div>
-                <div class="p-6">
-                <div class="flex items-center space-x-4">
-                    <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                    <span class="text-2xl text-white">{name[0].toUpperCase()}</span>
+    const submit = async (event) => {
+        event.preventDefault();
+        setError("");
+        setMessage("");
+        const numericAmount = Number(amount);
+
+        if (!id || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+            setError("Enter a positive amount and choose a recipient.");
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await axios.post("/api/v1/account/transfer", {
+                to: id,
+                amount: numericAmount,
+            }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            setMessage("Transfer successful.");
+        } catch (requestError) {
+            setError(requestError.response?.data?.message || "Unable to complete the transfer.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="flex min-h-screen justify-center bg-gray-100 px-4">
+            <div className="flex w-full max-w-md flex-col justify-center py-8">
+                <form onSubmit={submit} className="space-y-6 rounded-lg border bg-white p-6 shadow-lg">
+                    <h2 className="text-center text-3xl font-bold">Send Money</h2>
+                    <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500">
+                            <span className="text-2xl text-white">{name[0]?.toUpperCase() || "U"}</span>
+                        </div>
+                        <h3 className="text-2xl font-semibold">{name}</h3>
                     </div>
-                    <h3 class="text-2xl font-semibold">{name}</h3>
-                </div>
-                <div class="space-y-4">
-                    <div class="space-y-2">
-                    <label
-                        class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        for="amount"
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium" htmlFor="amount">Amount (in Rs)</label>
+                        <input
+                            onChange={(event) => setAmount(event.target.value)}
+                            value={amount}
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                            id="amount"
+                            placeholder="Enter amount"
+                        />
+                    </div>
+                    {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+                    {message && <p role="status" className="text-sm text-green-700">{message}</p>}
+                    <button
+                        type="submit"
+                        disabled={submitting}
+                        className="h-10 w-full rounded-md bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-60"
                     >
-                        Amount (in Rs)
-                    </label>
-                    <input
-                        onChange={(e) => {
-                            setAmount(e.target.value);
-                        }}
-                        type="number"
-                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                        id="amount"
-                        placeholder="Enter amount"
-                    />
-                    </div>
-                    <button onClick={() => {
-                        axios.post("http://localhost:3000/api/v1/account/transfer", {
-                            to: id,
-                            amount
-                        }, {
-                            headers: {
-                                Authorization: "Bearer " + localStorage.getItem("token")
-                            }
-                        })
-                    }} class="justify-center rounded-md text-sm font-medium ring-offset-background transition-colors h-10 px-4 py-2 w-full bg-green-500 text-white">
-                        Initiate Transfer
+                        {submitting ? "Sending..." : "Initiate Transfer"}
                     </button>
-                </div>
-                </div>
+                </form>
+            </div>
         </div>
-      </div>
-    </div>
+    );
 }
