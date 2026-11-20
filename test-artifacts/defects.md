@@ -1,6 +1,6 @@
 # P3 — Failed-row records
 
-This file is regenerated using only the P2 result table. Its rows show failed measurements (`HTTP 000`), not confirmed product defects or root causes. Severity and priority cannot be assigned from that table alone; no values are inferred.
+This file is regenerated using only the P2 result table. Its rows show failed measurements (`HTTP 000` or unchanged database snapshots), not confirmed product defects or root causes. Severity and priority cannot be assigned from that table alone; no values are inferred.
 
 ## A1 — Valid signup check received no response
 
@@ -223,15 +223,15 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Severity justification:** The P2 row records no HTTP responses, not user impact.
 - **Priority justification:** The P2 row contains no scheduling or release-priority evidence.
 
-## R1 — Regression check requests received no response
+## D1 — Database balance change was not observed
 
-- **Title:** R1 — No HTTP responses
+- **Title:** D1 — Account documents did not change
 - **Severity:** Undetermined
 - **Priority:** Undetermined
 - **Environment:** Not specified in the P2 result table.
-- **Steps to Reproduce:** Re-run the A-matrix as regression check R1.
-- **Expected:** Re-run the full A-matrix and compare with the first run.
-- **Actual:** All 15 curl requests again returned HTTP 000; same result as the first run.
-- **Evidence:** P2 row R1.
-- **Severity justification:** The P2 row records no HTTP responses, not user impact.
+- **Steps to Reproduce:** Run D1's before-and-after account queries around the integration transfer.
+- **Expected:** Account balances change after transfer.
+- **Actual:** The query returned `[]` before and after.
+- **Evidence:** P2 row D1.
+- **Severity justification:** The P2 row records unchanged data but provides no user-impact assessment.
 - **Priority justification:** The P2 row contains no scheduling or release-priority evidence.
