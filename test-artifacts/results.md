@@ -1,137 +1,409 @@
 # P2 — Measurement run
 
-Target: `http://127.0.0.1:3000`  
+Target: `http://127.0.0.1:3000`
+
+Database: `paytm` on a local MongoDB 7 single-node replica set at `127.0.0.1:27018`
+
+Backend connection: `MONGO_URL=mongodb://127.0.0.1:27018/paytm?replicaSet=rs0`
+
 Date: 2026-11-20
 
-## Environment
-
-- Docker: `paymongo` (`mongo:7`) was running and publishing port 27017.
-- `MONGO_URL` was unset; the backend default is `mongodb://127.0.0.1:27017/paytm`.
-- Backend is configured to call `app.listen(3000)`, but no process listened on port 3000.
-- Startup attempt: `node backend/index.js` failed before connecting to MongoDB:
-
-```text
-/workspaces/PAYMENTweb/backend/routes/index.js:13
-const express = require('express');
-      ^
-
-SyntaxError: Identifier 'express' has already been declared
-    at wrapSafe (node:internal/modules/cjs/loader:1861:18)
-    at Module._compile (node:internal/modules/cjs/loader:1903:20)
-    at Object..js (node:internal/modules/cjs/loader:2060:14)
-    at Module.load (node:internal/modules/cjs/loader:1651:32)
-    at Module._load (node:internal/modules/cjs/loader:1443:12)
-    at wrapModuleLoad (node:internal/modules/cjs/loader:261:24)
-    at Module.require (node:internal/modules/cjs/loader:1674:12)
-    at require (node:internal/modules/helpers:157:16)
-    at Object.<anonymous> (/workspaces/PAYMENTweb/backend/index.js:4:20)
-    at Module._compile (node:internal/modules/cjs/loader:1929:14)
-
-Node.js v24.22.2
-```
-
-Literal output from every HTTP curl request:
-
-```text
-curl: (7) Failed to connect to 127.0.0.1 port 3000 after 0 ms: Couldn't connect to server
-
-HTTP 000
-```
-
-`HTTP 000` is curl's no-response value, not an HTTP response code from the app. A4 could not yield a token; dependent authenticated requests used the documented placeholder token. Signup and transfer preconditions could not be established.
+The original MongoDB container on port 27017 was standalone; transfers use MongoDB transactions, so the backend exited on the first transfer attempt. To run the matrix without changing the existing container, a separate local replica set was initialized for this measurement. The replica set reported `isWritablePrimary: true`; the backend logged `Backend listening on port 3000`. A real GET returned `{"user":[]}` with HTTP 200 before the matrix. All credentials were test-only. JWTs are redacted below.
 
 ## P2 result table
 
 | ID | Type | Expected | Actual | Status |
 |---|---|---|---|---|
-| A1 | Functional | 200/201 | HTTP 000; curl exit 7 | Failed |
-| A2 | Functional | 4xx | HTTP 000; A1 did not create an account | Failed |
-| A3 | Functional | 400 | HTTP 000; curl exit 7 | Failed |
-| A4 | Functional | 200; capture token | HTTP 000; no token captured | Failed |
-| A5 | Functional | 401/403 | HTTP 000; curl exit 7 | Failed |
-| A6 | API | 200 | HTTP 000; no valid token available | Failed |
-| A7 | API | 401/403 | HTTP 000; curl exit 7 | Failed |
-| A8 | API | 200 | HTTP 000; no valid token available | Failed |
-| A9 | API | 200 | HTTP 000; no valid token or recipient account available | Failed |
-| A10 | API | 401/403 | HTTP 000; curl exit 7 | Failed |
-| A11 | Negative | 4xx | HTTP 000; no valid token or recipient account available | Failed |
-| A12 | Negative | 4xx | HTTP 000; no valid token or account balance available | Failed |
-| A13 | Negative | 4xx | HTTP 000; self-transfer identity could not be established | Failed |
-| A14 | Boundary | 200 for exact balance | HTTP 000; no known balance (request amount was 0) | Failed |
-| A15 | Boundary | 4xx for balance + 1 | HTTP 000; no known balance (request amount was 1000000000) | Failed |
-| I1 | Integration | A decreases by 100; B increases by 100 | Both signup calls, transfer, and both balance calls returned HTTP 000 | Failed |
-| D1 | Database | Balances changed in MongoDB | `[]` before transfer and `[]` after transfer; no balance change | Failed |
-| S1 | Smoke | A1, A4, A6, A9, A12 all pass | All five curl requests returned HTTP 000 | Failed |
-| U1 | UI | Inspect /signin and /signup at 1280px and 375px | not executed: no browser | Not executed |
+| A1 | Functional | 200/201 | HTTP 200 | Passed |
+| A2 | Functional | 4xx | HTTP 409 | Passed |
+| A3 | Functional | 400 | HTTP 400 | Passed |
+| A4 | Functional | HTTP 200; capture token | HTTP 200; token captured (redacted) | Passed |
+| A5 | Functional | 401/403 | HTTP 401 | Passed |
+| A6 | API | HTTP 200 | HTTP 200; balance `3702.351269317157` | Passed |
+| A7 | API | 401/403 | HTTP 403 | Passed |
+| A8 | API | HTTP 200 | HTTP 200; matching user returned | Passed |
+| A9 | API | HTTP 200 | HTTP 200 | Passed |
+| A10 | API | 401/403 | HTTP 403 | Passed |
+| A11 | Negative | 4xx | HTTP 200 | **Failed** |
+| A12 | Negative | 4xx | HTTP 400 | Passed |
+| A13 | API | 4xx | HTTP 200 | **Failed** |
+| A14 | Boundary | HTTP 200 for exact balance | HTTP 200; balance became `0` | Passed |
+| A15 | Boundary | 4xx for balance + 1 | HTTP 400 | Passed |
+| I1 | Integration | A -100; B +100 | A `7887.82841908881` → `7787.82841908881`; B `6013.549350847303` → `6113.549350847303` | Passed |
+| D1 | Database | Balances changed in MongoDB | Both account balances changed by 100 in the database | Passed |
+| S1 | Smoke | A1, A4, A6, A9, A12 all pass | HTTP `200, 200, 200, 200, 400` | Passed |
+| U1 | UI | Inspect `/signin` and `/signup` at 1280px and 375px | not executed: no browser | Not executed |
 | R1 | Regression | Re-run A-matrix and compare | not executed: no browser | Not executed |
 
-### Summary
+18 executed, 16 passed, 2 failed
 
-18 executed, 0 passed, 18 failed
+U1 and R1 are excluded from the execution count, as requested when no browser is available.
 
-U1 and R1 were not executed because no browser tool was available. Their rows are excluded from the execution count.
-
-### Results by type
+## Results by type
 
 | Type | Checks | Passed | Failed |
 |---|---:|---:|---:|
-| Functional | 5 | 0 | 5 |
-| API | 5 | 0 | 5 |
-| Negative | 3 | 0 | 3 |
-| Boundary | 2 | 0 | 2 |
-| Integration | 5 requests | 0 | 5 |
-| Database | 1 before/after comparison | 0 | 1 |
-| Smoke | 5 requests | 0 | 5 |
+| Functional | 5 | 5 | 0 |
+| API | 6 | 5 | 1 |
+| Negative | 2 | 1 | 1 |
+| Boundary | 2 | 2 | 0 |
+| Integration | 1 | 1 | 0 |
+| Database | 1 | 1 | 0 |
+| Smoke | 1 | 1 | 0 |
 | UI | 0 executed | 0 | 0 |
 | Regression | 0 executed | 0 | 0 |
+| **Total** | **18** | **16** | **2** |
 
-The Integration and Smoke rows count their component HTTP requests. The summary above counts the 18 executed matrix IDs.
+## Literal curl requests and responses
 
-## Exact HTTP requests
+Commands used `curl -sS -w '\nHTTP %{http_code}\n'`. The authorization JWT is redacted in this record; the requests used the actual captured token. Unless otherwise shown, requests had no curl error.
 
-All commands below used `curl -sS -i -w '\nHTTP %{http_code}\n' --max-time 3`; each returned the literal HTTP output shown above.
+### A1–A8
 
-| Check | Exact request |
-|---|---|
-| A1, A2 | `POST http://127.0.0.1:3000/api/v1/user/signup` with `Content-Type: application/json`, body `{"username":"qa.a.20261120@example.com","firstName":"QA","lastName":"Runner","password":"QaTest123!"}` |
-| A3 | `POST http://127.0.0.1:3000/api/v1/user/signup` with `Content-Type: application/json`, body `{}` |
-| A4 | `POST http://127.0.0.1:3000/api/v1/user/signin` with `Content-Type: application/json`, body `{"username":"qa.a.20261120@example.com","password":"QaTest123!"}` |
-| A5 | `POST http://127.0.0.1:3000/api/v1/user/signin` with `Content-Type: application/json`, body `{"username":"qa.a.20261120@example.com","password":"WrongPass123!"}` |
-| A6 | `GET http://127.0.0.1:3000/api/v1/account/balance` with `Authorization: Bearer unavailable-token` |
-| A7 | `GET http://127.0.0.1:3000/api/v1/account/balance` without Authorization |
-| A8 | `GET http://127.0.0.1:3000/api/v1/user/bulk?filter=QA` with `Authorization: Bearer unavailable-token` |
-| A9 | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":100,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| A10 | Same method, URL, content type, and body as A9; no Authorization header |
-| A11 | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":-1,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| A12 | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":999999999,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| A13 | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":1,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| A14 | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":0,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| A15 | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":1000000000,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| I1 signup A | `POST http://127.0.0.1:3000/api/v1/user/signup` with `Content-Type: application/json`, body `{"username":"qa.integration.a.20261120@example.com","firstName":"Integration","lastName":"A","password":"QaTest123!"}` |
-| I1 signup B | `POST http://127.0.0.1:3000/api/v1/user/signup` with `Content-Type: application/json`, body `{"username":"qa.integration.b.20261120@example.com","firstName":"Integration","lastName":"B","password":"QaTest123!"}` |
-| I1 transfer | `POST http://127.0.0.1:3000/api/v1/account/transfer` with `Content-Type: application/json`, body `{"amount":100,"to":"507f1f77bcf86cd799439011"}`, and `Authorization: Bearer unavailable-token` |
-| I1 balances | `GET http://127.0.0.1:3000/api/v1/account/balance` with `Authorization: Bearer unavailable-token`, once for each user |
-| S1-A1, S1-A4, S1-A6, S1-A9, S1-A12 | Repeated the corresponding A1, A4, A6, A9, and A12 requests above, in that order. |
+**A1 — signup, valid new user**
 
-No endpoint returned an application response, so this run could not establish that any endpoint is absent or not implemented. A14 and A15 also could not exercise the requested exact-balance and balance-plus-one conditions because no account balance was available.
-
-## D1 database output
-
-Executed before and after the integration transfer attempt inside the MongoDB container:
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/user/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"a20261120@example.com","firstName":"Matrix","lastName":"A","password":"QaTest123!"}'
+```
 
 ```text
-$ docker exec paymongo mongosh paytm --quiet --eval 'db.accounts.find().toArray()'
-[]
+{"message":"User created successfully","token":"[REDACTED]"}
+HTTP 200
+```
 
-$ docker exec paymongo mongosh paytm --quiet --eval 'db.accounts.find().toArray()'
-[]
+**A2 — signup, duplicate username**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/user/signup \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"a20261120@example.com","firstName":"Matrix","lastName":"A","password":"QaTest123!"}'
+```
+
+```text
+{"message":"Email already taken/Incorrect inputs"}
+HTTP 409
+```
+
+**A3 — signup, missing fields**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/user/signup \
+  -H 'Content-Type: application/json' -d '{}'
+```
+
+```text
+{"message":"Email already taken / Incorrect inputs"}
+HTTP 400
+```
+
+**A4 — signin, correct password**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/user/signin \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"a20261120@example.com","password":"QaTest123!"}'
+```
+
+```text
+{"token":"[REDACTED]"}
+HTTP 200
+```
+
+**A5 — signin, wrong password**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/user/signin \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"a20261120@example.com","password":"WrongPass123!"}'
+```
+
+```text
+{"message":"Error while logging in"}
+HTTP 401
+```
+
+**A6 — GET balance with token**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' \
+  -H 'Authorization: Bearer [REDACTED]' \
+  http://127.0.0.1:3000/api/v1/account/balance
+```
+
+```text
+{"balance":3702.351269317157}
+HTTP 200
+```
+
+**A7 — GET balance without token**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' \
+  http://127.0.0.1:3000/api/v1/account/balance
+```
+
+```text
+{}
+HTTP 403
+```
+
+**A8 — GET users search with token**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' \
+  -H 'Authorization: Bearer [REDACTED]' \
+  'http://127.0.0.1:3000/api/v1/user/bulk?filter=Matrix'
+```
+
+```text
+{"user":[{"username":"a20261120@example.com","firstName":"Matrix","lastName":"A","_id":"6b0087d394befb16f854e543"}]}
+HTTP 200
+```
+
+### A9–A15
+
+Recipient B was created with username `b20261120@example.com`; its ID was `6b0087d494befb16f854e54d`.
+
+**A9 — valid transfer, amount 1**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":1,"to":"6b0087d494befb16f854e54d"}'
+```
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+**A10 — transfer without token**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' \
+  -d '{"amount":1,"to":"6b0087d494befb16f854e54d"}'
+```
+
+```text
+{}
+HTTP 403
+```
+
+**A11 — negative transfer amount**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":-1,"to":"6b0087d494befb16f854e54d"}'
+```
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+**A12 — transfer more than balance**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":999999999,"to":"6b0087d494befb16f854e54d"}'
+```
+
+```text
+{"message":"Insufficient balance"}
+HTTP 400
+```
+
+**A13 — transfer to self**
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":1,"to":"6b0087d394befb16f854e543"}'
+```
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+**A14 — transfer exact balance**
+
+The precondition GET returned `{"balance":3702.351269317157}` with HTTP 200. The transfer used that exact amount:
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":3702.351269317157,"to":"6b0087d494befb16f854e54d"}'
+```
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+The following GET returned `{"balance":0}` with HTTP 200.
+
+**A15 — transfer balance + 1**
+
+After A14 the balance was 0, so the request amount was 1:
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":1,"to":"6b0087d494befb16f854e54d"}'
+```
+
+```text
+{"message":"Insufficient balance"}
+HTTP 400
+```
+
+### I1 — integration transfer
+
+Users C and D were signed up as `c20261120@example.com` and `d20261120@example.com`. C started at `7887.82841908881`; D started at `6013.549350847303`.
+
+```sh
+curl -sS -w '\nHTTP %{http_code}\n' -X POST http://127.0.0.1:3000/api/v1/account/transfer \
+  -H 'Content-Type: application/json' -H 'Authorization: Bearer [REDACTED]' \
+  -d '{"amount":100,"to":"6b0087e894befb16f854e564"}'
+```
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+The authenticated balance GETs returned:
+
+```text
+{"balance":7787.82841908881}
+HTTP 200
+
+{"balance":6113.549350847303}
+HTTP 200
+```
+
+### D1 — database before and after I1
+
+Command:
+
+```sh
+docker exec paymongo-rs mongosh paytm --port 27018 --quiet --eval 'db.accounts.find().toArray()'
+```
+
+Before transfer:
+
+```text
+[
+  {
+    _id: ObjectId('6b0087d394befb16f854e545'),
+    userId: ObjectId('6b0087d394befb16f854e543'),
+    balance: 3702.351269317157,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6b0087d494befb16f854e54f'),
+    userId: ObjectId('6b0087d494befb16f854e54d'),
+    balance: 6459.025795714645,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6b0087e894befb16f854e561'),
+    userId: ObjectId('6b0087e894befb16f854e55f'),
+    balance: 7887.82841908881,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6b0087e894befb16f854e566'),
+    userId: ObjectId('6b0087e894befb16f854e564'),
+    balance: 6013.549350847303,
+    __v: 0
+  }
+]
+```
+
+After transfer:
+
+```text
+[
+  {
+    _id: ObjectId('6b0087d394befb16f854e545'),
+    userId: ObjectId('6b0087d394befb16f854e543'),
+    balance: 3702.351269317157,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6b0087d494befb16f854e54f'),
+    userId: ObjectId('6b0087d494befb16f854e54d'),
+    balance: 6459.025795714645,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6b0087e894befb16f854e561'),
+    userId: ObjectId('6b0087e894befb16f854e55f'),
+    balance: 7787.82841908881,
+    __v: 0
+  },
+  {
+    _id: ObjectId('6b0087e894befb16f854e566'),
+    userId: ObjectId('6b0087e894befb16f854e564'),
+    balance: 6113.549350847303,
+    __v: 0
+  }
+]
+```
+
+The first two test accounts had already undergone A9/A11/A13 before this I1 snapshot. In the before/after comparison for the I1 users, C decreased by 100 and D increased by 100.
+
+### S1 — smoke sequence
+
+The sequence used the new user `e20261120@example.com`; the valid transfer amount was 1 and the over-balance amount was `999999999`.
+
+```text
+S1 A1 signup:
+{"message":"User created successfully","token":"[REDACTED]"}
+HTTP 200
+
+S1 A4 signin:
+{"token":"[REDACTED]"}
+HTTP 200
+
+S1 A6 balance:
+{"balance":4984.711464331146}
+HTTP 200
+
+S1 A9 valid transfer:
+{"message":"Transfer successful"}
+HTTP 200
+
+S1 A12 more than balance:
+{"message":"Insufficient balance"}
+HTTP 400
 ```
 
 ## Failures: exact request and response
 
-- **A1-A15:** Each exact request is listed in the request table above. Each returned the literal curl output at the start of this report (`curl: (7) Failed to connect to 127.0.0.1 port 3000 ...`, followed by `HTTP 000`).
-- **I1:** Both signup requests, the transfer request, and the two balance requests are listed above; each returned the same literal curl output.
-- **D1:** The two exact `mongosh` commands are shown above; each returned `[]`, so balances did not change.
-- **S1:** The five repeated requests are listed above; each returned the same literal curl output.
-- **U1:** not executed: no browser.
-- **R1:** not executed: no browser.
+**A11 — negative amount accepted**
+
+Request: `POST http://127.0.0.1:3000/api/v1/account/transfer`, `Content-Type: application/json`, `Authorization: Bearer [REDACTED]`, body `{"amount":-1,"to":"6b0087d494befb16f854e54d"}`.
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+**A13 — self-transfer accepted**
+
+Request: `POST http://127.0.0.1:3000/api/v1/account/transfer`, `Content-Type: application/json`, `Authorization: Bearer [REDACTED]`, body `{"amount":1,"to":"6b0087d394befb16f854e543"}` (recipient is the authenticated user's ID).
+
+```text
+{"message":"Transfer successful"}
+HTTP 200
+```
+
+U1 and R1: not executed: no browser.
