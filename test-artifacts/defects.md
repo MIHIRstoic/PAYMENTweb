@@ -7,7 +7,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A1 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A1 from the P2 matrix.
 - **Expected:** 200/201.
 - **Actual:** HTTP 000; curl exit 7.
@@ -20,7 +20,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A2 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A2 from the P2 matrix.
 - **Expected:** 4xx.
 - **Actual:** HTTP 000; curl exit 7; A1 did not create an account.
@@ -33,7 +33,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A3 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A3 from the P2 matrix.
 - **Expected:** 400.
 - **Actual:** HTTP 000; curl exit 7.
@@ -46,7 +46,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A4 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A4 from the P2 matrix.
 - **Expected:** 200; capture token.
 - **Actual:** HTTP 000; no token captured.
@@ -59,7 +59,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A5 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A5 from the P2 matrix.
 - **Expected:** 401/403.
 - **Actual:** HTTP 000; curl exit 7.
@@ -72,7 +72,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A6 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A6 from the P2 matrix.
 - **Expected:** 200.
 - **Actual:** HTTP 000; no valid token available.
@@ -85,7 +85,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A7 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A7 from the P2 matrix.
 - **Expected:** 401/403.
 - **Actual:** HTTP 000; curl exit 7.
@@ -98,7 +98,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A8 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A8 from the P2 matrix.
 - **Expected:** 200.
 - **Actual:** HTTP 000; no valid token available.
@@ -111,7 +111,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A9 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A9 from the P2 matrix.
 - **Expected:** 200.
 - **Actual:** HTTP 000; no valid token or recipient account available.
@@ -124,7 +124,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A10 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A10 from the P2 matrix.
 - **Expected:** 401/403.
 - **Actual:** HTTP 000; curl exit 7.
@@ -137,7 +137,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A11 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A11 from the P2 matrix.
 - **Expected:** 4xx.
 - **Actual:** HTTP 000; no valid token or recipient account available.
@@ -150,7 +150,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A12 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A12 from the P2 matrix.
 - **Expected:** 4xx.
 - **Actual:** HTTP 000; no valid token or account balance available.
@@ -163,7 +163,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A13 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A13 from the P2 matrix.
 - **Expected:** 4xx.
 - **Actual:** HTTP 000; self-transfer identity could not be established.
@@ -176,7 +176,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A14 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A14 from the P2 matrix.
 - **Expected:** 200 for exact balance.
 - **Actual:** HTTP 000; exact balance unavailable (request amount was 0).
@@ -189,7 +189,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** A15 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run check A15 from the P2 matrix.
 - **Expected:** 4xx for balance + 1.
 - **Actual:** HTTP 000; exact balance unavailable (request amount was 1000000000).
@@ -202,7 +202,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** I1 — No HTTP response
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run integration check I1 from the P2 matrix.
 - **Expected:** A decreases by 100; B increases by 100.
 - **Actual:** Both signup requests, transfer, and both balance requests returned HTTP 000.
@@ -215,7 +215,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** S1 — No HTTP responses
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** `http://127.0.0.1:3000`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run smoke check S1 from the P2 matrix.
 - **Expected:** A1, A4, A6, A9, and A12 all pass.
 - **Actual:** All five curl requests returned HTTP 000.
@@ -228,7 +228,7 @@ This file is regenerated using only the P2 result table. Its rows show failed me
 - **Title:** D1 — Account documents did not change
 - **Severity:** Undetermined
 - **Priority:** Undetermined
-- **Environment:** Not specified in the P2 result table.
+- **Environment:** MongoDB database `paytm`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Run D1's before-and-after account queries around the integration transfer.
 - **Expected:** Account balances change after transfer.
 - **Actual:** The query returned `[]` before and after.
