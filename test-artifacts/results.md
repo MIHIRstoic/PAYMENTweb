@@ -8,7 +8,7 @@ Backend connection: `MONGO_URL=mongodb://127.0.0.1:27018/paytm?replicaSet=rs0`
 
 Date: 2026-11-20
 
-The original MongoDB container on port 27017 was standalone; transfers use MongoDB transactions, so the backend exited on the first transfer attempt. To run the matrix without changing the existing container, a separate local replica set was initialized for this measurement. The replica set reported `isWritablePrimary: true`; the backend logged `Backend listening on port 3000`. A real GET returned `{"user":[]}` with HTTP 200 before the matrix. All credentials were test-only. JWTs are redacted below.
+The complete measurement used a separate local replica set because the transfer route uses MongoDB transactions. The replica set reported `isWritablePrimary: true`; the backend logged `Backend listening on port 3000`. A real GET returned `{"user":[]}` with HTTP 200 before the matrix. All credentials were test-only. JWTs are redacted below.
 
 ## P2 result table
 
@@ -56,7 +56,7 @@ U1 and R1 are excluded from the execution count, as requested when no browser is
 
 ## Literal curl requests and responses
 
-Commands used `curl -sS -w '\nHTTP %{http_code}\n'`. The authorization JWT is redacted in this record; the requests used the actual captured token. Unless otherwise shown, requests had no curl error.
+Each HTTP check was issued with `curl -sS`; an inline helper captured the status using `-w '||HTTP:%{http_code}'` and printed the response body and status on separate lines as shown below. The authorization JWT is redacted in this record; requests used the actual captured token. Unless otherwise shown, requests had no curl error.
 
 ### A1–A8
 
@@ -407,3 +407,49 @@ HTTP 200
 ```
 
 U1 and R1: not executed: no browser.
+
+## P4 — Reconciliation checks
+
+The following local checks reconcile the documentation counts; they do not represent additional application tests.
+
+```sh
+rg -c '^\| TC[0-9]{2} \|' test-artifacts/test-cases.md
+```
+
+```text
+30
+```
+
+```sh
+rg -c '^\| TC[0-9]{2} .*\| Passed \|' test-artifacts/test-cases.md
+rg -c '^\| TC[0-9]{2} .*\| Failed \|' test-artifacts/test-cases.md
+rg -c '^\| TC[0-9]{2} .*\| Not run \|' test-artifacts/test-cases.md
+```
+
+```text
+14
+2
+14
+```
+
+```sh
+rg -c '^## A(11|13) —' test-artifacts/defects.md
+rg -c '\*\*Severity:\*\* High' test-artifacts/defects.md
+rg -c '\*\*Severity:\*\* Medium' test-artifacts/defects.md
+```
+
+```text
+2
+1
+1
+```
+
+```sh
+awk -F'|' '/^\| A[0-9]+ \|/ || /^\| (I1|D1|S1) \|/ { status=$6; gsub(/\*/, "", status); gsub(/^[[:space:]]+|[[:space:]]+$/, "", status); total++; if (status == "Passed") passed++; else if (status == "Failed") failed++; } /^\| (U1|R1) \|/ { notrun++; } END { printf "executed=%d passed=%d failed=%d not_executed=%d\n", total, passed, failed, notrun; }' test-artifacts/results.md
+rg -c '^\| (Signup and signin|Authenticated and unauthenticated API behavior|Invalid negative and over-balance amounts|Zero, exact-balance, and balance-plus-one transfer boundaries|MongoDB account state|Signup, transfer, and balances across two users|Selected core checks in one pass) \|' test-artifacts/coverage.md
+```
+
+```text
+executed=18 passed=16 failed=2 not_executed=2
+7
+```

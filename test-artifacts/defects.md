@@ -5,7 +5,7 @@ These are the two failed P2 rows only. Each finding is directly evidenced by its
 ## A11 — Negative transfer amount accepted
 
 - **Title:** Transfer endpoint accepts a negative amount
-- **Severity:** High — a caller can submit a negative transfer, which the API reports as successful and can reverse the intended direction of funds.
+- **Severity:** High — the money-transfer API accepts and confirms a negative amount; P2 did not verify the resulting balance impact.
 - **Priority:** P1 — reject negative amounts before money-transfer use because the request can affect another user's balance.
 - **Environment:** `http://127.0.0.1:3000`; database `paytm` on MongoDB 7 replica set at `127.0.0.1:27018`; P2 run 2026-11-20.
 - **Steps to Reproduce:** Authenticate as user A, then POST `/api/v1/account/transfer` with amount `-1` and recipient B (`6b0087d494befb16f854e54d`).

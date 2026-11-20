@@ -1,5 +1,8 @@
 # P3 — Test cases
 
+Target: `http://127.0.0.1:3000`
+Database: `paytm` on MongoDB 7 replica set at `127.0.0.1:27018`
+
 These 30 cases use the P2 environment and expected behaviors. `Actual` and `Status` report P2 evidence only; unmeasured scenarios are explicitly marked not run.
 
 | ID | Requirement | Type | Precondition | Steps | Test Data | Expected | Actual | Status |
@@ -9,10 +12,10 @@ These 30 cases use the P2 environment and expected behaviors. `Actual` and `Stat
 | TC03 | Reject missing signup fields | Negative | Backend available | POST signup with empty JSON | `{}` | 400 | A3: HTTP 400 | Passed |
 | TC04 | Require a username | Negative | Backend available | POST signup without `username` | Other fields valid | 4xx | Not executed in P2 | Not run |
 | TC05 | Reject malformed signup email | Negative | Backend available | POST signup with malformed email | `not-an-email` and other valid fields | 400 | Not executed in P2 | Not run |
-| TC06 | Reject short signup password | Boundary | Backend available | POST signup with password shorter than six characters | `Qa123` | 400 | Not executed in P2 | Not run |
+| TC06 | Reject short signup password | Boundary | Backend available | POST signup with password shorter than minimum length | `short` | 400 | Not executed in P2 | Not run |
 | TC07 | Sign in with correct credentials | Positive | TC01 user exists | POST `/api/v1/user/signin` | `a20261120@example.com` / `QaTest123!` | 200 and token | A4: HTTP 200; token captured and redacted | Passed |
 | TC08 | Reject incorrect password | Negative | TC01 user exists | POST signin with incorrect password | `a20261120@example.com` / `WrongPass123!` | 401/403 | A5: HTTP 401 | Passed |
-| TC09 | Reject unknown signin user | Negative | Backend available | POST signin with valid-format unknown email | `unknown20261120@example.com` / `QaTest123!` | 401/403 | Not executed in P2 | Not run |
+| TC09 | Reject unknown signin user | Negative | Backend available | POST signin with valid-format unknown email | `unknown@example.com` / `QaTest123!` | 401/403 | Not executed in P2 | Not run |
 | TC10 | Reject missing signin password | Negative | TC01 user exists | POST signin without password | `a20261120@example.com` | 4xx | Not executed in P2 | Not run |
 | TC11 | Reject malformed signin email | Negative | Backend available | POST signin with malformed email | `not-an-email` / `QaTest123!` | 400 | Not executed in P2 | Not run |
 | TC12 | Read balance with valid token | Permission | Signed-in user and valid token | GET `/api/v1/account/balance` with bearer token | A's token | 200 and balance | A6: HTTP 200; `3702.351269317157` | Passed |
@@ -33,4 +36,4 @@ These 30 cases use the P2 environment and expected behaviors. `Actual` and `Stat
 | TC27 | Reject transfer with missing recipient | Negative | Sender has valid token | POST transfer without `to` | Positive amount `1` | 4xx | Not executed in P2 | Not run |
 | TC28 | Reject malformed recipient ID | Negative | Sender has valid token | POST transfer to malformed ID | Amount `1`; recipient `invalid-id` | 4xx | Not executed in P2 | Not run |
 | TC29 | Reject string transfer amount | Negative | Sender, recipient, and valid token exist | POST transfer | Amount `"1"` as a string; recipient B | 4xx | Not executed in P2 | Not run |
-| TC30 | Accept a small positive transfer | Boundary / Positive | Sender, recipient, and valid token exist; sufficient funds | POST transfer | Amount `0.01`; recipient B | 200 | Not executed in P2 | Not run |
+| TC30 | Accept a small positive transfer | Boundary / Positive | Sender, recipient, and valid token exist; sufficient funds | POST transfer | Amount `1`; recipient B | 200 | Not executed in P2 | Not run |

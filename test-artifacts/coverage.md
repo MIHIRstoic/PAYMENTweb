@@ -1,5 +1,7 @@
 # P3 — Coverage
 
+Target: `http://127.0.0.1:3000`
+
 | Requirement | Test type | Check IDs | Executed | Passed |
 |---|---|---|---:|---:|
 | Signup and signin | Functional | A1-A5 | 5 | 5 |
